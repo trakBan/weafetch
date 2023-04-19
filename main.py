@@ -62,12 +62,13 @@ def getArt() -> str:
     for x in weather.items():
         comparableWeather[x[0]] = x[1][0]
 
-    if all([comparableWeather["Rain"] < 0.25, comparableWeather["Clouds"] < 25]):
-        art = wfa.neutral
-    elif all([comparableWeather["Rain"] > 0.25, comparableWeather["Clouds"] < 25]):
+    if comparableWeather["Rain"] > 0.25 and comparableWeather["Clouds"] < 25:
         art = wfa.rain
-    elif all([comparableWeather["Rain"] > 0.25, comparableWeather["Clouds"] > 25]):
+    elif comparableWeather["Rain"] > 0.25 and comparableWeather["Clouds"] > 25:
         art = wfa.cloud + wfa.rain
+    elif comparableWeather["Rain"] < 0.25 and comparableWeather["Clouds"] > 25:
+        art = wfa.cloud + "\n" + wfa.neutral
+    
     else:
         art = wfa.neutral
 
@@ -90,17 +91,26 @@ def parseArgs():
 def main():
     weather = formattedWeather()
     art = getArt()
+    maxCheck = True
 
     maxAscii = max([len(x) for x in art.splitlines()])
     for asc, (desc, value) in zip_longest(
-        art.splitlines(), weather.items(), fillvalue=("", "")
-    ):
-        print(
-            asc if type(asc) is not tuple else "  ",
-            " " * (maxAscii - len(asc)),
-            end="   ",
-        )
+        art.splitlines(), weather.items(), fillvalue=("", "") 
+    ): # fillvalue has to be a tuple because desc and value are unpacking
 
+        if type(asc) is tuple:
+            asc = ""
+            if maxCheck:
+                # Lenght of an ansii sequence
+                maxAscii -= 11
+                maxCheck = False
+
+        # Printing art
+        print(
+            asc, " " * abs(maxAscii - len(asc)),
+            end=" " * 3,
+        )
+        # Print data
         print(
             desc, " ".join([str(x) for x in value]),
             sep=(": ") if value != "" else ""
