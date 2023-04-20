@@ -33,7 +33,8 @@ def formattedWeather() -> dict:
     windAngle = weather["hourly"]["winddirection_10m"][hour]
     windDirection = ""
     windDirection = (
-        "↑" if (windAngle in range(0, 45) or windAngle in range(315, 360))
+        "↑"
+        if (windAngle in range(0, 45) or windAngle in range(315, 360))
         else windDirection
     )
     windDirection = ">" if (windAngle in range(45, 135)) else windDirection
@@ -50,6 +51,10 @@ def formattedWeather() -> dict:
         "Humidity": [weather["hourly"]["relativehumidity_2m"][hour], "%"],
         "Rain": [weather["hourly"]["rain"][hour], "mm"],
         "Clouds": [weather["hourly"]["cloudcover"][hour], "%"],
+        "Sun": [
+            datetime.fromisoformat(weather["daily"]["sunrise"][0]).strftime("%H:%M"), "☀", "|",
+            datetime.fromisoformat(weather["daily"]["sunset"][0]).strftime("%H:%M"), "☀",
+        ],
     }
 
     return formWeather
@@ -68,7 +73,7 @@ def getArt() -> str:
         art = wfa.cloud + wfa.rain
     elif comparableWeather["Rain"] < 0.25 and comparableWeather["Clouds"] > 25:
         art = wfa.cloud + "\n" + wfa.neutral
-    
+
     else:
         art = wfa.neutral
 
@@ -95,8 +100,8 @@ def main():
 
     maxAscii = max([len(x) for x in art.splitlines()])
     for asc, (desc, value) in zip_longest(
-        art.splitlines(), weather.items(), fillvalue=("", "") 
-    ): # fillvalue has to be a tuple because desc and value are unpacking
+        art.splitlines(), weather.items(), fillvalue=("", "")
+    ):  # fillvalue has to be a tuple because desc and value are unpacking
 
         if type(asc) is tuple:
             asc = ""
@@ -107,13 +112,13 @@ def main():
 
         # Printing art
         print(
-            asc, " " * abs(maxAscii - len(asc)),
+            asc,
+            " " * abs(maxAscii - len(asc)),
             end=" " * 3,
         )
         # Print data
         print(
-            desc, " ".join([str(x) for x in value]),
-            sep=(": ") if value != "" else ""
+            desc, " ".join([str(x) for x in value]), sep=(": ") if value != "" else ""
         )
 
 
