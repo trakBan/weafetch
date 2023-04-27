@@ -37,8 +37,8 @@ def formattedWeather() -> dict:
         if (windAngle in range(0, 45) or windAngle in range(315, 360))
         else windDirection
     )
-    windDirection = ">" if (windAngle in range(45, 135)) else windDirection
-    windDirection = "<" if (windAngle in range(225, 315)) else windDirection
+    windDirection = "→" if (windAngle in range(45, 135)) else windDirection
+    windDirection = "←" if (windAngle in range(225, 315)) else windDirection
     windDirection = "↓" if (windAngle in range(135, 225)) else windDirection
 
     formWeather: dict = {
@@ -52,8 +52,11 @@ def formattedWeather() -> dict:
         "Rain": [weather["hourly"]["rain"][hour], "mm"],
         "Clouds": [weather["hourly"]["cloudcover"][hour], "%"],
         "Sun": [
-            datetime.fromisoformat(weather["daily"]["sunrise"][0]).strftime("%H:%M"), "☀", "|",
-            datetime.fromisoformat(weather["daily"]["sunset"][0]).strftime("%H:%M"), "☀",
+            datetime.fromisoformat(weather["daily"]["sunrise"][0]).strftime("%H:%M"),
+            "☀",
+            "|",
+            datetime.fromisoformat(weather["daily"]["sunset"][0]).strftime("%H:%M"),
+            "☀",
         ],
     }
 
