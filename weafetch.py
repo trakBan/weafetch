@@ -1,6 +1,8 @@
 from json import loads
-from requests import get
 from itertools import zip_longest
+
+from requests import get
+import argparse
 
 
 error_internet: str = "There seems to be a problem with internet."
@@ -18,17 +20,24 @@ cloud = """  .-.
 rain = """  ‘ ‘ ‘ ‘
 ‘ ‘ ‘ ‘"""
 
+fog = """ 
+_ - _ - _ -
+  _ - _ - _
+ _ - _ - _ -"""
 
-try: getip = get("https://ipinfo.io/json")
-except Exception as e: raise SystemExit(error_internet)
+clear = """
+  \   /
+   .-.
+― (   ) ―
+   `-’
+  /   \\"""
 
-city: str = loads(getip.text)["city"]
-url: str = f"http://wttr.in/{city}?format=j1"
-
-try: init = get(url)
-except Exception as e: raise SystemExit(error_internet)
-
-weatherRaw: dict = loads(init.text)
+partly = """
+   \  /
+ _ /"".-.
+   \_(   ).
+   /(___(__)
+"""
 
 
 def getWeather():
@@ -45,7 +54,7 @@ def getWeather():
         "wind_speed": currentWeather["windspeedKmph"],
         "wind_direction": currentWeather["winddir16Point"],
         "city": weatherRaw["nearest_area"][0]["areaName"][0]["value"],
-        "country": weatherRaw["nearest_area"][0]["country"][0]["value"]
+        "country": weatherRaw["nearest_area"][0]["country"][0]["value"],
     }
 
     windDirection = weather["wind_direction"]
@@ -62,26 +71,57 @@ def getWeather():
 
     global descriptors
     descriptors = [
-        f'{weather["city"]}, {weather["country"]}',
         weather["desc"],
         f'{weather["feels_like"]}({weather["temp"]})°C',
         f'{weather["rain_chance"]}% | {weather["rain_levels"]} mm',
-        f'{weather["wind_speed"]}km/h {wind}',
+        f'{wind} {weather["wind_speed"]}km/h',
     ]
 
 
 def getArt(art: str = "") -> str:
 
     desc = weather.get("desc", None).lower()
+    entered = False
 
     if "cloud" in desc:
         art += cloud + "\n"
+        entered = True
     if "rain" in desc:
         art += rain + "\n"
-    else:
+        entered = True
+    if "fog" in desc:
+        art = fog
+        entered = True
+    if "clear" in desc:
+        art = clear
+        entered = True
+    if "partly" in desc:
+        art = partly
+        entered = True
+
+    if entered == False:
         art = neutral
 
     return art
+
+
+def parseArgs():
+
+    parser = argparse.ArgumentParser(
+        prog="wetfetch",
+        description="See the weather in terminal, neofetch style",
+    )
+
+    parser.add_argument(
+        "-c", "--city", type=str, help="get a weather report for a different city"
+    )
+
+    parser.add_argument(
+        "-d", "--debug", action="store_true", help="Get a more verbose error output"
+    )
+
+    return parser.parse_args()
+
 
 def main() -> None:
 
@@ -95,6 +135,22 @@ def main() -> None:
 
 
 if __name__ == "__main__":
+
+    args = parseArgs()
+    city = args.city
+
+    city = "" if city is None else city
+
+    url: str = f"http://wttr.in/{city}?format=j1"
+    try:
+        init = get(url)
+    except Exception as e:
+        raise SystemExit(error_internet, e if args.debug else None)
+
+    weatherRaw: dict = loads(init.text)
+
     getWeather()
+
+    print(f'{weather["city"]}, {weather["country"]}\n')
     main()
     print()
