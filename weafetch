@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 from json import loads
 from itertools import zip_longest
 
@@ -137,7 +139,7 @@ def main() -> None:
 if __name__ == "__main__":
 
     args = parseArgs()
-    city = args.city
+    city: str = args.city
 
     city = "" if city is None else city
 
