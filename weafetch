@@ -8,59 +8,51 @@ import argparse
 
 
 error_internet: str = "There seems to be a problem with internet."
+error_json: str = "There seems to be a problem with decoding values, most likely due to API being down."
+
 common_space = 3
 
+artAscii: dict = {
+    "neutral": """
+       .--.
+    .-(    ).
+    (___.__)__)""",
+    
+    "cloud": """
+     .-.
+    (   ). 
+    (___(__)""",
 
-neutral = """   .--.
- .-(    ).
-(___.__)__)"""
+    "rain": """
+      ‘ ‘ ‘ ‘
+    ‘ ‘ ‘ ‘""",
 
-cloud = """  .-.
- (   ). 
-(___(__)"""
+    "fog": """ 
+    _ - _ - _ -
+    _ - _ - _
+    _ - _ - _ -""",
 
-rain = """  ‘ ‘ ‘ ‘
-‘ ‘ ‘ ‘"""
+    "clear": """    \   /
+     .-.
+    (.-.)
+     `-’
+    /   \\""",
 
-fog = """ 
-_ - _ - _ -
-  _ - _ - _
- _ - _ - _ -"""
-
-clear = """
-  \   /
-   .-.
-― (   ) ―
-   `-’
-  /   \\"""
-
-partly = """
-   \  /
- _ /"".-.
-   \_(   ).
-   /(___(__)
-"""
+    "partly": """
+    \  /
+    _ /"".-.
+    \_(   ).
+    /(___(__)
+    """
+}
 
 
 def getWeather():
 
     currentWeather: dict = weatherRaw["weather"][0]["hourly"][0]
 
-    global weather
-    weather = {
-        "temp": currentWeather["tempC"],
-        "feels_like": currentWeather["FeelsLikeC"],
-        "rain_chance": currentWeather["chanceofrain"],
-        "rain_levels": currentWeather["precipMM"],
-        "desc": currentWeather["weatherDesc"][0]["value"],
-        "wind_speed": currentWeather["windspeedKmph"],
-        "wind_direction": currentWeather["winddir16Point"],
-        "city": weatherRaw["nearest_area"][0]["areaName"][0]["value"],
-        "country": weatherRaw["nearest_area"][0]["country"][0]["value"],
-    }
-
-    windDirection = weather["wind_direction"]
-    wind = ""
+    windDirection = weatherRaw["current_condition"][0]["winddir16Point"]
+    wind = "-"
     wind = "↑" if windDirection == "N" else wind
     wind = "→" if windDirection == "E" else wind
     wind = "←" if windDirection == "W" else wind
@@ -73,45 +65,31 @@ def getWeather():
 
     global descriptors
     descriptors = [
-        weather["desc"],
-        f'{weather["feels_like"]}({weather["temp"]})°C',
-        f'{weather["rain_chance"]}% | {weather["rain_levels"]} mm',
-        f'{wind} {weather["wind_speed"]}km/h',
+        currentWeather["weatherDesc"][0]["value"],
+        f'{currentWeather["FeelsLikeC"]}({currentWeather["tempC"]})°C',
+        f'{currentWeather["chanceofrain"]}% | {currentWeather["precipMM"]} mm',
+        f'{wind} {currentWeather["windspeedKmph"]}km/h',
     ]
 
 
 def getArt(art: str = "") -> str:
 
-    desc = weather.get("desc", None).lower()
-    entered = False
+    desc = weatherRaw["weather"][0]["hourly"][0]["weatherDesc"][0]["value"].lower()
 
-    if "cloud" in desc:
-        art += cloud + "\n"
-        entered = True
-    if "rain" in desc:
-        art += rain + "\n"
-        entered = True
-    if "fog" in desc:
-        art = fog
-        entered = True
-    if "clear" in desc:
-        art = clear
-        entered = True
-    if "partly" in desc:
-        art = partly
-        entered = True
+    got: list[str | None] = []
+    for de in desc.split():
+        for ar in artAscii.keys():
+            if ar in de:
+                got.append(artAscii.get(ar, ""))
 
-    if entered == False:
-        art = neutral
-
-    return art
+    return "\n".join(got).replace("\n", "", 1)
 
 
 def parseArgs():
 
     parser = argparse.ArgumentParser(
         prog="wetfetch",
-        description="See the weather in terminal, neofetch style",
+        description="see the weather in terminal, neofetch style",
     )
 
     parser.add_argument(
@@ -119,7 +97,7 @@ def parseArgs():
     )
 
     parser.add_argument(
-        "-d", "--debug", action="store_true", help="Get a more verbose error output"
+        "-v", "--verbose", action="store_true", help="get a more verbose error output"
     )
 
     return parser.parse_args()
@@ -142,17 +120,16 @@ if __name__ == "__main__":
     city: str = args.city
 
     city = "" if city is None else city
-
     url: str = f"http://wttr.in/{city}?format=j1"
-    try:
-        init = get(url)
-    except Exception as e:
-        raise SystemExit(error_internet, e if args.debug else None)
 
-    weatherRaw: dict = loads(init.text)
+    try: init = get(url, timeout=10)
+    except Exception as e: raise SystemExit(f'{error_internet} {e if args.debug else ""}')
+
+    try: weatherRaw: dict = loads(init.text)
+    except Exception as e: raise SystemExit(f'{error_json} {e if args.debug else ""}')
 
     getWeather()
 
-    print(f'{weather["city"]}, {weather["country"]}\n')
+    print(f'{weatherRaw["nearest_area"][0]["areaName"][0]["value"]}, {weatherRaw["nearest_area"][0]["country"][0]["value"]}\n')
     main()
     print()

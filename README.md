@@ -25,3 +25,5 @@ sudo python3 setup.py install
 
 ## One line
 ```git clone https://github.com/trakBan/weafetch.git && cd weafetch && sudo python3 setup.py install```
+
+weafetch is made possible using wttr.in made by Igor Chubin
