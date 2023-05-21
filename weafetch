@@ -17,38 +17,33 @@ artAscii: dict = {
        .--.
     .-(    ).
     (___.__)__)""",
-    
     "cloud": """
      .-.
     (   ). 
     (___(__)""",
-
     "rain": """
       ‘ ‘ ‘ ‘
     ‘ ‘ ‘ ‘""",
-
     "fog": """ 
     _ - _ - _ -
     _ - _ - _
     _ - _ - _ -""",
-
-    "clear": """    \   /
+    "clear": """
+    \   /
      .-.
     (.-.)
      `-’
     /   \\""",
-
     "partly": """
     \  /
     _ /"".-.
     \_(   ).
     /(___(__)
-    """
+    """,
 }
 
 
 def getWeather():
-
     currentWeather: dict = weatherRaw["weather"][0]["hourly"][0]
 
     windDirection = weatherRaw["current_condition"][0]["winddir16Point"]
@@ -73,7 +68,6 @@ def getWeather():
 
 
 def getArt(art: str = "") -> str:
-
     desc = weatherRaw["weather"][0]["hourly"][0]["weatherDesc"][0]["value"].lower()
 
     got: list[str | None] = []
@@ -82,11 +76,13 @@ def getArt(art: str = "") -> str:
             if ar in de:
                 got.append(artAscii.get(ar, ""))
 
+    if got == []:
+        got.append(artAscii.get("neutral"))
+
     return "\n".join(got).replace("\n", "", 1)
 
 
 def parseArgs():
-
     parser = argparse.ArgumentParser(
         prog="wetfetch",
         description="see the weather in terminal, neofetch style",
@@ -104,32 +100,33 @@ def parseArgs():
 
 
 def main() -> None:
-
     artFull: str = getArt()
 
     longest: int = max([len(x) for x in artFull.splitlines()])
     for art, desc in zip_longest(artFull.splitlines(), descriptors, fillvalue=""):
-
         print(art, " " * (longest - len(art)), end=" " * common_space)
         print(desc)
 
 
 if __name__ == "__main__":
-
     args = parseArgs()
     city: str = args.city
 
     city = "" if city is None else city
     url: str = f"http://wttr.in/{city}?format=j1"
 
+    verbose = lambda e: e if args.verbose else ""
+
     try: init = get(url, timeout=10)
-    except Exception as e: raise SystemExit(f'{error_internet} {e if args.debug else ""}')
+    except Exception as e: raise SystemExit(f"{error_internet} {verbose(e)}")
 
     try: weatherRaw: dict = loads(init.text)
-    except Exception as e: raise SystemExit(f'{error_json} {e if args.debug else ""}')
+    except Exception as e: raise SystemExit(f"{error_json} {verbose(e)}")
 
     getWeather()
 
-    print(f'{weatherRaw["nearest_area"][0]["areaName"][0]["value"]}, {weatherRaw["nearest_area"][0]["country"][0]["value"]}\n')
+    print(
+        f'{weatherRaw["nearest_area"][0]["areaName"][0]["value"]}, {weatherRaw["nearest_area"][0]["country"][0]["value"]}\n'
+    )
     main()
     print()
