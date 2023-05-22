@@ -2,45 +2,22 @@
 
 from json import loads
 from itertools import zip_longest
+from os import environ
+from sys import path
 
 from requests import get
 import argparse
+
+src = f"{environ['HOME']}/.config/weafetch/artascii.py"
+path.insert(0, src)
+
+from artascii import artAscii as art
 
 
 error_internet: str = "There seems to be a problem with internet."
 error_json: str = "There seems to be a problem with decoding values, most likely due to API being down."
 
 common_space = 3
-
-artAscii: dict = {
-    "neutral": """
-       .--.
-    .-(    ).
-    (___.__)__)""",
-    "cloud": """
-     .-.
-    (   ). 
-    (___(__)""",
-    "rain": """
-      ‘ ‘ ‘ ‘
-    ‘ ‘ ‘ ‘""",
-    "fog": """ 
-    _ - _ - _ -
-    _ - _ - _
-    _ - _ - _ -""",
-    "clear": """
-    \   /
-     .-.
-    (.-.)
-     `-’
-    /   \\""",
-    "partly": """
-    \  /
-    _ /"".-.
-    \_(   ).
-    /(___(__)
-    """,
-}
 
 
 def getWeather():
@@ -67,17 +44,17 @@ def getWeather():
     ]
 
 
-def getArt(art: str = "") -> str:
+def getArt() -> str:
     desc = weatherRaw["weather"][0]["hourly"][0]["weatherDesc"][0]["value"].lower()
 
-    got: list[str | None] = []
+    got: list = []
     for de in desc.split():
-        for ar in artAscii.keys():
+        for ar in art.keys():
             if ar in de:
-                got.append(artAscii.get(ar, ""))
+                got.append(art.get(ar, ""))
 
     if got == []:
-        got.append(artAscii.get("neutral"))
+        got.append(art.get("neutral"))
 
     return "\n".join(got).replace("\n", "", 1)
 
