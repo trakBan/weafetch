@@ -21,10 +21,9 @@ except Exception as e:
 
 try: copy("src/config.json", path)
 except Exception as e: raise SystemExit(copyError, e)
-
+"""
 with open("README.md", "r") as f:
     desc = f.read()
-"""
 
 setup(
     author="trakBan",

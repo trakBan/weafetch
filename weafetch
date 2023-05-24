@@ -6,7 +6,7 @@ from itertools import zip_longest
 from requests import get
 import argparse
 
-from artascii import artAscii as art
+from src.artascii import artAscii as art
 
 error_internet: str = "There seems to be a problem with internet."
 error_json: str = "There seems to be a problem with decoding values, most likely due to API being down."
