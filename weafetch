@@ -1,17 +1,21 @@
 #!/usr/bin/env python3
 
-from json import loads
+from json import loads, load
 from itertools import zip_longest
+from os import environ
 
 from requests import get
 import argparse
-
-from src.artascii import artAscii as art
+from artascii import art
 
 error_internet: str = "There seems to be a problem with internet."
 error_json: str = "There seems to be a problem with decoding values, most likely due to API being down."
 
-common_space = 3
+
+def parseConfig():
+    path: str = f"/home/{environ.get('USER')}/.config/weafetch/config.json"
+    with open(path, "r") as f:
+        return loads(f.read())
 
 
 def getWeather():
@@ -75,12 +79,13 @@ def main() -> None:
 
     longest: int = max([len(x) for x in artFull.splitlines()])
     for art, desc in zip_longest(artFull.splitlines(), descriptors, fillvalue=""):
-        print(art, " " * (longest - len(art)), end=" " * common_space)
+        print(art, " " * (longest - len(art)), end=" " * conf.get("common_space"))
         print(desc)
 
 
 if __name__ == "__main__":
     args = parseArgs()
+    conf = parseConfig()
     city: str = args.city
 
     city = "" if city is None else city
