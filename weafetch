@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 
 from itertools import zip_longest
-from json import loads, load
+from json import loads
 from os import environ
+from re import sub
 
 from artascii import art
 from requests import get
@@ -20,7 +21,7 @@ def parseConfig():
 
 
 def getWeather():
-    currentWeather: dict = weatherRaw["current_condition"][0]
+    currentWeather: dict = weatherRaw["weather"][0]["hourly"][7]
 
     windDirection = currentWeather["winddir16Point"]
     wind = "-"
@@ -34,8 +35,8 @@ def getWeather():
     wind = "↙" if windDirection in ["WSW", "WS", "SSW"] else wind
     wind = "↘" if windDirection in ["SSE", "ES", "ESE"] else wind
 
-    if conf.get("fahrenheit"): temp: str = f'{currentWeather["FeelsLikeF"]}({currentWeather["temp_F"]})°F'
-    else: temp: str = f'{currentWeather["FeelsLikeC"]}({currentWeather["temp_C"]})°C'
+    if conf.get("fahrenheit"): temp: str = f'{currentWeather["FeelsLikeF"]}({currentWeather["tempF"]})°F'
+    else: temp: str = f'{currentWeather["FeelsLikeC"]}({currentWeather["tempC"]})°C'
 
     if conf.get("mph"): win: str = f'{wind} {currentWeather["windspeedMiles"]}mph'
     else: win: str = f'{wind} {currentWeather["windspeedKmph"]}km/h'
@@ -44,13 +45,14 @@ def getWeather():
     descriptors = [
         currentWeather["weatherDesc"][0]["value"],
         temp,
-        #f'{currentWeather["chanceofrain"]}% | {currentWeather["precipMM"]} mm',
+        f'{currentWeather["chanceofrain"]}% | {currentWeather["precipMM"]} mm',
         win
     ]
 
 
 def getArt() -> str:
-    desc = weatherRaw["current_condition"][0]["weatherDesc"][0]["value"].lower()
+    #desc = weatherRaw["weather"][0]["hourly"][7]["weatherDesc"][0]["value"].lower()
+    desc = "Cloudy with thunder".lower()
 
     got: list = []
     for de in desc.split():
@@ -83,10 +85,11 @@ def parseArgs():
 
 def main() -> None:
     artFull: str = getArt()
+    removedArt = re.sub("\\033\[[0-9;]*m", "", artFull)
 
-    longest: int = max([len(x) for x in artFull.splitlines()])
+    longest: int = max([len(x) for x in removedArt.splitlines()])
     for art, desc in zip_longest(artFull.splitlines(), descriptors, fillvalue=""):
-        print(art.strip(), " " * (longest - len(art)), end=" " * conf.get("common_space"))
+        print(art.strip(), " " * (longest - len(art)), end=" " * conf.get("common_space", 3))
         print(desc)
 
 
