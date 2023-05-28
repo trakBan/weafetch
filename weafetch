@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
 
-from json import loads, load
 from itertools import zip_longest
+from json import loads, load
 from os import environ
 
+from artascii import art
 from requests import get
 import argparse
-from artascii import art
+
 
 error_internet: str = "There seems to be a problem with internet."
 error_json: str = "There seems to be a problem with decoding values, most likely due to API being down."
@@ -19,9 +20,9 @@ def parseConfig():
 
 
 def getWeather():
-    currentWeather: dict = weatherRaw["weather"][0]["hourly"][0]
+    currentWeather: dict = weatherRaw["current_condition"][0]
 
-    windDirection = weatherRaw["current_condition"][0]["winddir16Point"]
+    windDirection = currentWeather["winddir16Point"]
     wind = "-"
     wind = "↑" if windDirection == "N" else wind
     wind = "→" if windDirection == "E" else wind
@@ -33,17 +34,23 @@ def getWeather():
     wind = "↙" if windDirection in ["WSW", "WS", "SSW"] else wind
     wind = "↘" if windDirection in ["SSE", "ES", "ESE"] else wind
 
+    if conf.get("fahrenheit"): temp: str = f'{currentWeather["FeelsLikeF"]}({currentWeather["temp_F"]})°F'
+    else: temp: str = f'{currentWeather["FeelsLikeC"]}({currentWeather["temp_C"]})°C'
+
+    if conf.get("mph"): win: str = f'{wind} {currentWeather["windspeedMiles"]}mph'
+    else: win: str = f'{wind} {currentWeather["windspeedKmph"]}km/h'
+
     global descriptors
     descriptors = [
         currentWeather["weatherDesc"][0]["value"],
-        f'{currentWeather["FeelsLikeC"]}({currentWeather["tempC"]})°C',
-        f'{currentWeather["chanceofrain"]}% | {currentWeather["precipMM"]} mm',
-        f'{wind} {currentWeather["windspeedKmph"]}km/h',
+        temp,
+        #f'{currentWeather["chanceofrain"]}% | {currentWeather["precipMM"]} mm',
+        win
     ]
 
 
 def getArt() -> str:
-    desc = weatherRaw["weather"][0]["hourly"][0]["weatherDesc"][0]["value"].lower()
+    desc = weatherRaw["current_condition"][0]["weatherDesc"][0]["value"].lower()
 
     got: list = []
     for de in desc.split():
@@ -79,7 +86,7 @@ def main() -> None:
 
     longest: int = max([len(x) for x in artFull.splitlines()])
     for art, desc in zip_longest(artFull.splitlines(), descriptors, fillvalue=""):
-        print(art, " " * (longest - len(art)), end=" " * conf.get("common_space"))
+        print(art.strip(), " " * (longest - len(art)), end=" " * conf.get("common_space"))
         print(desc)
 
 

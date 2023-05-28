@@ -1,3 +1,5 @@
 {
+    "mph": false,
+    "fahrenheit": false,    
     "common_space": 3
 }
