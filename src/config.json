@@ -1,5 +1,16 @@
 {
-    "mph": false,
-    "fahrenheit": false,    
-    "common_space": 3
+    "config": {
+        "mph": false,
+        "fahrenheit": false,    
+        "common_space": 3
+    },
+    "formatting": {
+        "format": "%d%t%p%w",
+        "values": {
+            "d": "{desc}",
+            "t": "{feel_like_temp}({real_temp}){unit_temp}",
+            "p": "{precip_chance}% | {precip}mm",
+            "w": "{wind_direction} {wind_speed}{unit_wind}"
+        }
+    }
 }

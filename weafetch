@@ -5,7 +5,7 @@ from json import loads
 from os import environ
 from re import sub
 
-from artascii import art
+from src.artascii import art
 from requests import get
 import argparse
 
@@ -35,24 +35,49 @@ def getWeather():
     wind = "↙" if windDirection in ["WSW", "WS", "SSW"] else wind
     wind = "↘" if windDirection in ["SSE", "ES", "ESE"] else wind
 
-    if conf.get("fahrenheit"): temp: str = f'{currentWeather["FeelsLikeF"]}({currentWeather["tempF"]})°F'
-    else: temp: str = f'{currentWeather["FeelsLikeC"]}({currentWeather["tempC"]})°C'
+    
+    if conf["config"]["fahrenheit"]:
+        feel_like_temp: int = currentWeather["FeelsLikeF"]
+        real_temp: int = currentWeather["FeelsLikeF"]
+        unit_temp: str = "°F"
+    else:
+        feel_like_temp: int = currentWeather["FeelsLikeC"]
+        real_temp: int = currentWeather["tempC"]
+        unit_temp: str = "°C"
 
-    if conf.get("mph"): win: str = f'{wind} {currentWeather["windspeedMiles"]}mph'
-    else: win: str = f'{wind} {currentWeather["windspeedKmph"]}km/h'
+    if conf["config"]["mph"]:
+        wind_speed: int = currentWeather["windspeedMiles"]
+        unit_wind: str = "mph"
+    else:
+        wind_speed: int = currentWeather["windspeedKmph"]
+        unit_wind: str = "km/h"
+
+
+    keywords: dict = {
+        "wind_speed": wind_speed,
+        "wind_direction": wind,
+        "unit_wind": unit_wind,
+        "real_temp": real_temp,
+        "feel_like_temp": feel_like_temp,
+        "unit_temp": unit_temp,
+        "desc": currentWeather["weatherDesc"][0]["value"],
+        "precip_chance": currentWeather["chanceofrain"],
+        "precip": currentWeather["precipMM"],
+    }
 
     global descriptors
-    descriptors = [
-        currentWeather["weatherDesc"][0]["value"],
-        temp,
-        f'{currentWeather["chanceofrain"]}% | {currentWeather["precipMM"]} mm',
-        win
-    ]
+    descriptors = []
+    for x in (conf["formatting"]["format"].split("%")[1:]):
+        unformatted: str = conf["formatting"]["values"][x]
+        for keyword in keywords.keys():
+            if keyword in unformatted:
+                unformatted = (unformatted.replace("{" + keyword + "}", keywords[keyword]))
+
+        descriptors.append(unformatted)
 
 
 def getArt() -> str:
-    #desc = weatherRaw["weather"][0]["hourly"][7]["weatherDesc"][0]["value"].lower()
-    desc = "Cloudy with thunder".lower()
+    desc = weatherRaw["weather"][0]["hourly"][7]["weatherDesc"][0]["value"].lower()
 
     got: list = []
     for de in desc.split():
@@ -85,11 +110,11 @@ def parseArgs():
 
 def main() -> None:
     artFull: str = getArt()
-    removedArt = re.sub("\\033\[[0-9;]*m", "", artFull)
+    removedArt = sub("\\033\[[0-9;]*m", "", artFull)
 
     longest: int = max([len(x) for x in removedArt.splitlines()])
     for art, desc in zip_longest(artFull.splitlines(), descriptors, fillvalue=""):
-        print(art.strip(), " " * (longest - len(art)), end=" " * conf.get("common_space", 3))
+        print(art.strip(), " " * (longest - len(art)), end=" " * conf["config"]["common_space"])
         print(desc)
 
 
