@@ -35,7 +35,6 @@ def getWeather():
     wind = "↙" if windDirection in ["WSW", "WS", "SSW"] else wind
     wind = "↘" if windDirection in ["SSE", "ES", "ESE"] else wind
 
-    
     if conf["config"]["fahrenheit"]:
         feel_like_temp: int = currentWeather["FeelsLikeF"]
         real_temp: int = currentWeather["FeelsLikeF"]
@@ -52,7 +51,6 @@ def getWeather():
         wind_speed: int = currentWeather["windspeedKmph"]
         unit_wind: str = "km/h"
 
-
     keywords: dict = {
         "wind_speed": wind_speed,
         "wind_direction": wind,
@@ -67,11 +65,13 @@ def getWeather():
 
     global descriptors
     descriptors = []
-    for x in (conf["formatting"]["format"].split("%")[1:]):
+    for x in conf["formatting"]["format"].split("%")[1:]:
         unformatted: str = conf["formatting"]["values"][x]
         for keyword in keywords.keys():
             if keyword in unformatted:
-                unformatted = (unformatted.replace("{" + keyword + "}", keywords[keyword]))
+                unformatted = unformatted.replace(
+                    "{" + keyword + "}", keywords[keyword]
+                )
 
         descriptors.append(unformatted)
 
@@ -109,21 +109,24 @@ def parseArgs():
 
 
 def main() -> None:
-    artFull: str = getArt()
-    removedArt = sub("\\033\[[0-9;]*m", "", artFull)
+    art_full = getArt()
+    removed_art = sub(r"\033\[[0-9;]*m", "", art_full)
 
-    longest: int = max([len(x) for x in removedArt.splitlines()])
-    for art, desc in zip_longest(artFull.splitlines(), descriptors, fillvalue=""):
-        print(art.strip(), " " * (longest - len(art)), end=" " * conf["config"]["common_space"])
+    longest = max(len(line) for line in removed_art.splitlines())
+    for art, desc in zip_longest(art_full.splitlines(), descriptors, fillvalue=""):
+        print(
+            f"{art.strip()} {' ' * (longest - len(art))}",
+            end=" " * conf["config"]["common_space"],
+        )
         print(desc)
 
 
 if __name__ == "__main__":
     args = parseArgs()
     conf = parseConfig()
-    city: str = args.city
+    city: str = args.city or ""
 
-    city = "" if city is None else city
+    # city = "" if city is None else city
     url: str = f"http://wttr.in/{city}?format=j1"
 
     verbose = lambda e: e if args.verbose else ""
