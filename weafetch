@@ -22,6 +22,8 @@ def parseConfig():
 
 def getWeather():
     currentWeather: dict = weatherRaw["weather"][0]["hourly"][7]
+    currentCondition: dict = weatherRaw["current_condition"][0]
+
 
     windDirection = currentWeather["winddir16Point"]
     wind = "-"
@@ -36,19 +38,19 @@ def getWeather():
     wind = "↘" if windDirection in ["SSE", "ES", "ESE"] else wind
 
     if conf["config"]["fahrenheit"]:
-        feel_like_temp: int = currentWeather["FeelsLikeF"]
-        real_temp: int = currentWeather["FeelsLikeF"]
+        feel_like_temp: int = currentCondition["FeelsLikeF"]
+        real_temp: int = currentCondition["temp_F"]
         unit_temp: str = "°F"
     else:
-        feel_like_temp: int = currentWeather["FeelsLikeC"]
-        real_temp: int = currentWeather["tempC"]
+        feel_like_temp: int = currentCondition["FeelsLikeC"]
+        real_temp: int = currentCondition["temp_C"]
         unit_temp: str = "°C"
 
     if conf["config"]["mph"]:
-        wind_speed: int = currentWeather["windspeedMiles"]
+        wind_speed: int = currentCondition["windspeedMiles"]
         unit_wind: str = "mph"
     else:
-        wind_speed: int = currentWeather["windspeedKmph"]
+        wind_speed: int = currentCondition["windspeedKmph"]
         unit_wind: str = "km/h"
 
     keywords: dict = {
@@ -65,6 +67,8 @@ def getWeather():
 
     global descriptors
     descriptors = []
+
+    # Replace all keywords from config.json with actual data
     for x in conf["formatting"]["format"].split("%")[1:]:
         unformatted: str = conf["formatting"]["values"][x]
         for keyword in keywords.keys():
