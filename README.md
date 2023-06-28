@@ -23,11 +23,11 @@ git clone https://github.com/trakBan/weafetch.git
 cd weafetch
 
 # root is required
-sudo pip install . || sudo pip install . --break-system-packages
+sudo pip install .
 ```
 
 ## One line
-```git clone https://github.com/trakBan/weafetch.git && cd weafetch && sudo pip install . || sudo pip install . --break-system-packages```
+```git clone https://github.com/trakBan/weafetch.git && cd weafetch && sudo pip install .```
 
 
 ## JSON configuration
