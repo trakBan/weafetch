@@ -19,12 +19,12 @@ options:
 git clone https://github.com/trakBan/weafetch.git
 cd weafetch
 
-# Root is required
-sudo python3 setup.py install
+# root is required
+sudo pip install . || sudo pip install . --break-system-packages
 ```
 
 ## One line
-```git clone https://github.com/trakBan/weafetch.git && cd weafetch && sudo python3 setup.py install```
+```git clone https://github.com/trakBan/weafetch.git && cd weafetch && sudo pip install . || sudo pip install . --break-system-packages```
 
 
 ## JSON configuration
@@ -51,7 +51,7 @@ config file can be found at ```~/.config/weafetch/config.json```
 ```
 
 ### Keywords
-```
+```yaml
 {desc} - description of weather, eg. "Light drizzle"
 {feel_like_temp} - temperature that is perceived by humans , eg. 32
 {real_temp} - actual temperature, eg, 30
@@ -63,5 +63,4 @@ config file can be found at ```~/.config/weafetch/config.json```
 {unit_wind} - shows measuring unit for wind, eg km/h, mph
 ```
 
-
-weafetch is made possible by wttr.in made by Igor Chubin
+weafetch is made possible by wttr.in api made by Igor Chubin

@@ -5,7 +5,7 @@ from json import loads
 from os import environ
 from re import sub
 
-from src.artascii import WWO_CODE, WEATHER_SYMBOL_WEGO
+from artascii import WWO_CODE, WEATHER_SYMBOL_WEGO
 from requests import get
 import argparse
 
@@ -15,12 +15,14 @@ error_json: str = "There seems to be a problem with decoding values, most likely
 
 
 def parseConfig() -> dict:
+    # parses config file using json loads
     path: str = f"/home/{environ.get('USER')}/.config/weafetch/config.json"
     with open(path, "r") as f:
         return loads(f.read())
 
 
 def getWeather():
+    # gets all information from json into list descriptors
     currentWeather: dict = weatherRaw["weather"][0]["hourly"][7]
     currentCondition: dict = weatherRaw["current_condition"][0]
 
@@ -82,7 +84,7 @@ def getWeather():
 
 
 def getArt() -> str:
-    
+    # returns the art appropiate to weather
     code: str = weatherRaw["current_condition"][0]["weatherCode"]
     desc: str = WWO_CODE.get(code, "Unknown")
 
@@ -137,12 +139,11 @@ def main() -> None:
 if __name__ == "__main__":
     args = parseArgs()
     conf = parseConfig()
-    city: str = args.city or ""
-
-    # city = "" if city is None else city
-    url: str = f"http://wttr.in/{city}?format=j1"
 
     verbose = lambda e: e if args.verbose else ""
+    city: str = args.city or ""
+
+    url: str = f"http://wttr.in/{city}?format=j1"
 
     try: init = get(url, timeout=10)
     except Exception as e: raise SystemExit(f"{error_internet} {verbose(e)}")
