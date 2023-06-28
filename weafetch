@@ -5,7 +5,7 @@ from json import loads
 from os import environ
 from re import sub
 
-from src.artascii import art
+from src.artascii import WWO_CODE, WEATHER_SYMBOL_WEGO
 from requests import get
 import argparse
 
@@ -61,7 +61,7 @@ def getWeather():
         "real_temp": real_temp,
         "feel_like_temp": feel_like_temp,
         "unit_temp": unit_temp,
-        "desc": currentWeather["weatherDesc"][0]["value"],
+        "desc": currentCondition["weatherDesc"][0]["value"],
         "precip_chance": currentWeather["chanceofrain"],
         "precip": currentWeather["precipMM"],
     }
@@ -82,18 +82,11 @@ def getWeather():
 
 
 def getArt() -> str:
-    desc = weatherRaw["weather"][0]["hourly"][7]["weatherDesc"][0]["value"].lower()
+    
+    code: str = weatherRaw["current_condition"][0]["weatherCode"]
+    desc: str = WWO_CODE.get(code, "Unknown")
 
-    got: list = []
-    for de in desc.split():
-        for ar in art.keys():
-            if ar in de:
-                got.append(art.get(ar, ""))
-
-    if got == []:
-        got.append(art.get("neutral"))
-
-    return "\n".join(got).replace("\n", "", 1)
+    return WEATHER_SYMBOL_WEGO.get(desc, "error")
 
 
 def parseArgs():
@@ -115,20 +108,27 @@ def parseArgs():
 
 def main() -> None:
 
+    print(
+        f'{weatherRaw["nearest_area"][0]["areaName"][0]["value"]}, {weatherRaw["nearest_area"][0]["country"][0]["value"]}\n'
+    )
+
+    # matches ANSII color sequences eg. \033[38;5;226m \033[0m
     match = r".\[.+?(?=m)."
 
     art_full = []
-    for x in getArt().splitlines():
+    for x in getArt():
         art_full.append(x.strip())
 
     art_full = "\n".join(art_full)
     removed_art = sub(match, "", art_full)
 
+    # prints art alongside the descriptions
+    # artFull is art with color, artEmpty is art without color
     longest = max(len(line) for line in removed_art.splitlines())
     for artFull, artEmpty, desc in zip_longest(art_full.splitlines(), removed_art.splitlines(), descriptors, fillvalue=""):
         print(
             artFull + " " * (longest - len(artEmpty)),
-            end=" "
+            end=" " * conf["config"]["common_space"]
         )
 
         print(desc)
@@ -151,9 +151,5 @@ if __name__ == "__main__":
     except Exception as e: raise SystemExit(f"{error_json} {verbose(e)}")
 
     getWeather()
-
-    print(
-        f'{weatherRaw["nearest_area"][0]["areaName"][0]["value"]}, {weatherRaw["nearest_area"][0]["country"][0]["value"]}\n'
-    )
     main()
     print()
