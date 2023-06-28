@@ -14,7 +14,7 @@ error_internet: str = "There seems to be a problem with internet."
 error_json: str = "There seems to be a problem with decoding values, most likely due to API being down."
 
 
-def parseConfig():
+def parseConfig() -> dict:
     path: str = f"/home/{environ.get('USER')}/.config/weafetch/config.json"
     with open(path, "r") as f:
         return loads(f.read())
@@ -53,6 +53,7 @@ def getWeather():
         wind_speed: int = currentCondition["windspeedKmph"]
         unit_wind: str = "km/h"
 
+    # keywords from config.json
     keywords: dict = {
         "wind_speed": wind_speed,
         "wind_direction": wind,
@@ -113,15 +114,23 @@ def parseArgs():
 
 
 def main() -> None:
-    art_full = getArt()
-    removed_art = sub(r"\033\[[0-9;]*m", "", art_full)
+
+    match = r".\[.+?(?=m)."
+
+    art_full = []
+    for x in getArt().splitlines():
+        art_full.append(x.strip())
+
+    art_full = "\n".join(art_full)
+    removed_art = sub(match, "", art_full)
 
     longest = max(len(line) for line in removed_art.splitlines())
-    for art, desc in zip_longest(art_full.splitlines(), descriptors, fillvalue=""):
+    for artFull, artEmpty, desc in zip_longest(art_full.splitlines(), removed_art.splitlines(), descriptors, fillvalue=""):
         print(
-            f"{art.strip()} {' ' * (longest - len(art))}",
-            end=" " * conf["config"]["common_space"],
+            artFull + " " * (longest - len(artEmpty)),
+            end=" "
         )
+
         print(desc)
 
 
