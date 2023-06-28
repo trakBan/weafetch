@@ -1,7 +1,8 @@
 # weafetch
 ### See the weather in terminal, neofetch style! ☁️🌡️
 
-![ksnip_20230628-180753](https://github.com/trakBan/weafetch/assets/81049050/e66fc803-fb7d-4c6c-8d99-bd357fa3343f)
+![ksnip_20230628-180753](https://github.com/trakBan/weafetch/assets/81049050/7ce7ebc0-335b-426d-bf80-744089910dc7)
+
 
 ## Usage
 ```
